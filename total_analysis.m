@@ -214,59 +214,69 @@ for j=1:num_blocks
 end
 
 for i = 1:num_blocks
+    
+    if i ~= 16
             
-    S = [];
-    S.D = continuous_files{i};
-    D_continuous=spm_eeg_load(continuous_files{i});
+        S = [];
+        S.D = continuous_files{i};
+        D_continuous=spm_eeg_load(continuous_files{i});
 
-    pretrig = -1000;
-    posttrig = 1000;
-    S.timewin = [pretrig posttrig];
+        if i == 1 || (mod(i,2) == 0 && i ~= 2 && i ~= 18) % CLP blocks
+            pretrig = -1800;
+            posttrig = 3500;
+        elseif i == 2 || (mod(i,2) == 1 && i ~= 1) || i == 18 % OLP blocks
+            pretrig = -3000;
+            posttrig = 3700;
+        end 
+            
+        S.timewin = [pretrig posttrig];
 
-    % event definitions
-    S.trialdef(1).conditionlabel = 'OptiTrack on';
-    S.trialdef(1).eventtype = 'STI101_down';
-    S.trialdef(1).eventvalue = 2; 
-    S.trialdef(2).conditionlabel = 'OptiTrack off';
-    S.trialdef(2).eventtype = 'STI101_down';
-    S.trialdef(2).eventvalue = 3;     
-    S.trialdef(3).conditionlabel = 'button released';
-    S.trialdef(3).eventtype = 'STI101_down';
-    S.trialdef(3).eventvalue = 4;
-    S.trialdef(4).conditionlabel = 'button pressed';
-    S.trialdef(4).eventtype = 'STI101_down';
-    S.trialdef(4).eventvalue = 5;
-    S.trialdef(5).conditionlabel = 'auditory left';
-    S.trialdef(5).eventtype = 'STI101_down';
-    S.trialdef(5).eventvalue = 8;
-    S.trialdef(6).conditionlabel = 'auditory right';
-    S.trialdef(6).eventtype = 'STI101_down';
-    S.trialdef(6).eventvalue = 9;
-    S.trialdef(7).conditionlabel = 'auditory central';
-    S.trialdef(7).eventtype = 'STI101_down';
-    S.trialdef(7).eventvalue = 10;          
-    S.trialdef(8).conditionlabel = 'Smartglass transparent';
-    S.trialdef(8).eventtype = 'STI101_down';
-    S.trialdef(8).eventvalue = 32;
-    S.trialdef(9).conditionlabel = 'Smartglass opaque';
-    S.trialdef(9).eventtype = 'STI101_down';
-    S.trialdef(9).eventvalue = 64;
+        % event definitions
+        S.trialdef(1).conditionlabel = 'OptiTrack on';
+        S.trialdef(1).eventtype = 'STI101_down';
+        S.trialdef(1).eventvalue = 2; 
+        S.trialdef(2).conditionlabel = 'OptiTrack off';
+        S.trialdef(2).eventtype = 'STI101_down';
+        S.trialdef(2).eventvalue = 3;     
+        S.trialdef(3).conditionlabel = 'button released';
+        S.trialdef(3).eventtype = 'STI101_down';
+        S.trialdef(3).eventvalue = 4;
+        S.trialdef(4).conditionlabel = 'button pressed';
+        S.trialdef(4).eventtype = 'STI101_down';
+        S.trialdef(4).eventvalue = 5;
+        S.trialdef(5).conditionlabel = 'auditory left';
+        S.trialdef(5).eventtype = 'STI101_down';
+        S.trialdef(5).eventvalue = 8;
+        S.trialdef(6).conditionlabel = 'auditory right';
+        S.trialdef(6).eventtype = 'STI101_down';
+        S.trialdef(6).eventvalue = 9;
+        S.trialdef(7).conditionlabel = 'auditory central';
+        S.trialdef(7).eventtype = 'STI101_down';
+        S.trialdef(7).eventvalue = 10;          
+        S.trialdef(8).conditionlabel = 'Smartglass transparent';
+        S.trialdef(8).eventtype = 'STI101_down';
+        S.trialdef(8).eventvalue = 32;
+        S.trialdef(9).conditionlabel = 'Smartglass opaque';
+        S.trialdef(9).eventtype = 'STI101_down';
+        S.trialdef(9).eventvalue = 64;
 
-    S.reviewtrials = 0;
-    S.save = 0;
-    S.epochinfo.padding = 0;
-    S.event = D_continuous.events;
-    S.fsample = D_continuous.fsample;
-    S.timeonset = D_continuous.timeonset;
+        S.reviewtrials = 0;
+        S.save = 0;
+        S.epochinfo.padding = 0;
+        S.event = D_continuous.events;
+        S.fsample = D_continuous.fsample;
+        S.timeonset = D_continuous.timeonset;
 
-    [epochinfo{i}.trl, epochinfo{i}.conditionlabels] = spm_eeg_definetrial(S);
+        [epochinfo{i}.trl, epochinfo{i}.conditionlabels] = spm_eeg_definetrial(S);
 
-    S2 = epochinfo{i};
-    S2.D = D_continuous;
-    Dep = osl_epoch(S2);
-    session_name{i} = sprintf(['%d_epoched' currentsession],i);
-    Dep_files{i} = Dep.copy(fullfile(epocheddir,session_name{i}));
-        
+        S2 = epochinfo{i};
+        S2.D = D_continuous;
+        Dep = osl_epoch(S2);
+        session_name{i} = sprintf(['%d_epoched_CLP_RO_1.8_3.5_OLP_RO_3.0_3.7' currentsession],i);
+        Dep_files{i} = Dep.copy(fullfile(epocheddir,session_name{i}));
+    
+    end
+    
 end
 
 
@@ -556,37 +566,26 @@ for i = 1:num_blocks
 %         D = spm_eeg_load(continuous_files{i});
 %         data = spm2fieldtrip(D);
 
-        continuous_files{i} = fullfile(continuousdir, [num2str(i) '_continuous' currentsession '.mat']);
-
-        cfg                         = [];
-        cfg.datafile                = continuous_files{i};
-        cfg.headerfile              = continuous_files{i};
-        cfg.trialfun                = 'ft_trialfun_general'; % this is the default
-        cfg.trialdef.eventtype      = 'STI101_down';
-        cfg.trialdef.eventvalue     = [4]; 
-        if i == 1 || (mod(i,2) == 0 && i ~= 2 && i ~= 16 && i ~= 18) % CLP blocks
-            cfg.trialdef.prestim        = 1.8; % cue = 0.3s (after button press) + point = 1s + 0.5s
-            cfg.trialdef.poststim       = 2.4; % time until next button press + 0.5s
-        else
-            cfg.trialdef.prestim        = 3.0; % get ready = 1s + wait = 0.5s + point = 1s 
-            cfg.trialdef.poststim       = 3.0; % time until next button press + 0.5s
-        end 
-
-        cfg = ft_definetrial(cfg);
-        data_preproc = ft_preprocessing(cfg);
+        epoched_files{i} = fullfile(epocheddir, [num2str(i) '_epoched_CLP_RO_1.8_3.5_OLP_RO_3.0_3.mat']);
+        D = spm_eeg_load(epoched_files{i});
+        data = spm2fieldtrip(D);
 
         cfg = [];
-        cfg.trials   = data_preproc.trialinfo == 4;
-        data_release = ft_redefinetrial(cfg, data_preproc);
+        if i ~= 13
+            cfg.trials = data.trialinfo == 5; % note spm2filedtrip maps "button released" to condition 5
+        else
+            cfg.trials = data.trialinfo == 4;
+        end
+        data_release = ft_redefinetrial(cfg, data);
 
         cfg            = [];
         cfg.output     = 'pow';
         % select channels over the motor cortex
-        cfg.channel    = {'MEG0123' 'MEG0122' 'MEG0342' 'MEG0343' 'MEG0323' 'MEG0322' 'MEG0332' 'MEG0333' 'MEG0643' 'MEG0642' 'MEG0623' 'MEG0622' 'MEG1033' 'MEG1032' 'MEG1242' 'MEG1243' 'MEG1233' 'MEG1232' 'MEG1222' 'MEG1223' 'MEG1413' 'MEG1412'};
+        cfg.channel    = 'MEGPLANAR';
         cfg.method     = 'mtmconvol';
-        cfg.foi        = 13:30;
-        cfg.t_ftimwin  = 5./cfg.foi;
-        cfg.tapsmofrq  = 0.2 *cfg.foi;
+        cfg.taper      = 'hanning';
+        cfg.foi        = 0:3:30;
+        cfg.t_ftimwin  = ones(size(cfg.foi,2)) * (1/3);
         if i == 1 || (mod(i,2) == 0 && i ~= 2 && i ~= 16 && i ~= 18) % CLP blocks
             cfg.toi    = -1.6:0.05:2.2;
         else
@@ -602,12 +601,35 @@ for i = 1:num_blocks
         cfg.colorbar     = 'yes';
         figure
         ft_singleplotTFR(cfg, TFRmult)
-        saveas(gcf, fullfile(movement_TFRdir, [num2str(i) '_movement_TFR_CLPRO_1.8_2.4_OLPRO_3.0_3.0_baseline_0.15_0.2sm' currentsession '.fig']));
+        saveas(gcf, fullfile(movement_TFRdir, [num2str(i) '_movement_TFR_CLPRO_1.8_2.4_OLPRO_3.0_3.0_baseline_0.15_fixedTW_0.33_singletaper_FOI_0330_allmegplanar' currentsession '.fig']));
 
     end
     
 end
 
+%% Calculate return times (length of time between button releases and presses)
 
-
-
+for i = 1:num_blocks
+    
+    if i ~= 16
+        
+        return_times = [];
+        
+        epoched_files{i} = fullfile(epocheddir, [num2str(i) '_epoched_CLP_RO_1.8_2.4_OLP_RO_3.0_3.mat']);
+        D = spm_eeg_load(epoched_files{i});
+        
+        released_trial_indices = find(contains(D.epochinfo.conditionlabels,'button released'));
+        released_trials = D.epochinfo.trl(released_trial_indices,:);
+        
+        pressed_trial_indices = find(contains(D.epochinfo.conditionlabels,'button pressed'));
+        pressed_trials = D.epochinfo.trl(pressed_trial_indices,:);        
+        
+        for j = 2:size(pressed_trials,1)
+            return_times = [return_times (pressed_trials(j,1) - released_trials(j-1, 1))/250];
+        end
+        
+        all_return_times{i} = return_times;
+        
+    end
+    
+end
